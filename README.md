@@ -12,4 +12,4 @@ The aim is to predict whether a bank's customers will leave the bank or not.
 2. Exploratory Data Analysis
 4. SQL Queries
 5. Data Preprocessing & Feature Engineering
-6. Modeling
+6. Modelling
