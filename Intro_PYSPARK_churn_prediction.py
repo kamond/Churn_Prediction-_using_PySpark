@@ -2,23 +2,23 @@
 # Churn Prediction using PySpark
 ##################################################
 
-# Şirketi terk edecek müşterileri tahmin edebilecek bir makine öğrenmesi modeli geliştirebilir misiniz?
-# Amaç bir bankanın müşterilerinin bankayı terk etme ya da terk etmeme durumunun tahmin edilmesidir.
+# Can you develop a machine learning model that can predict customers leaving the company?
+# The aim is to predict whether a bank's customers will leave the bank or not.
 
-# 1. Kurulum
+# 1. Installation
 # 2. Exploratory Data Analysis
-# 3. SQL Sorguları
+# 3. SQL Queries
 # 4. Data Preprocessing & Feature Engineering
 # 5. Modeling
 
 ##################################################
-# Kurulum
+# Installation
 ##################################################
 
 # https://spark.apache.org/downloads.html
-# username/spark dizinin altına indir.
+# download under username/spark.
 
-# pyarrow: Farklı veri yapıları arasında çalışma kolaylığı sağlayan bir modul.
+# pyarrow: A module that provides ease of working between different data structures.
 
 # pip install pyspark
 # pip install findspark
@@ -44,18 +44,18 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 pd.set_option('display.max_columns', None)
 pd.set_option('display.float_format', lambda x: '%.2f' % x)
 
-findspark.init("/Users/mvahit/spark/spark-3.1.1-bin-hadoop2.7")
+findspark.init("/Users/onder-tanrikulu/spark/spark-3.1.1-bin-hadoop2.7")
 
 spark = SparkSession.builder \
     .master("local") \
-    .appName("pyspark_giris") \
+    .appName("pyspark_intro") \
     .getOrCreate()
 
 # PoC
 
 sc = spark.sparkContext
 
-# http://mvahit-mbp.lan:4040/jobs/
+# http://onder-tanrikulu-pc1.lan:4040/jobs/
 # sc.stop()
 
 
@@ -64,10 +64,10 @@ sc = spark.sparkContext
 ##################################################
 
 ############################
-# Pandas df ile Spark df farkını anlamak.
+# Understanding the difference between Pandas df and Spark df.
 ############################
 
-spark_df = spark.read.csv("datasets/churn.csv", header=True, inferSchema=True)
+spark_df = spark.read.csv("churn.csv", header=True, inferSchema=True)
 type(spark_df)
 
 df = sns.load_dataset("diamonds")
@@ -97,17 +97,17 @@ df.ndim
 # Exploratory Data Analysis
 ############################
 
-# Gözlem ve değişken sayısı
+# Number of observations and variables
 print("Shape: ", (spark_df.count(), len(spark_df.columns)))
 
-# Değişken tipleri
+# Variable types
 spark_df.printSchema()
 spark_df.dtypes
 
-# Değişken seçme
+# Variable selection
 spark_df.Age
 
-# Bir değişkeni görmek
+# Selecting and displaying a single variable
 spark_df.select(spark_df.Age).show()
 
 # Head
@@ -115,41 +115,41 @@ spark_df.show(3, truncate=True)
 spark_df.take(5)
 spark_df.head()
 
-# Değişken isimlerinin küçültülmesi
+# Variable names in lower case
 spark_df = spark_df.toDF(*[c.lower() for c in spark_df.columns])
 spark_df.show(5)
 
 
-# özet istatistikler
+# Summary statistics
 spark_df.describe().show()
 
-# sadece belirli değişkenler için özet istatistikler
+# Summary statistics for certain variables
 spark_df.describe(["age", "churn"]).show()
 
-# Kategorik değişken sınıf istatistikleri
+# Statistics of categorical variables
 spark_df.groupby("churn").count().show()
 
-# Eşsiz sınıflar
+# Unique classes
 spark_df.select("churn").distinct().show()
 
-# select(): Değişken seçimi
+# select(): Show some variables
 spark_df.select("age", "names").show(5)
 
-# filter(): Gözlem seçimi / filtreleme
+# filter(): Observation selection / filtering
 spark_df.filter(spark_df.age > 40).show()
 spark_df.filter(spark_df.age > 40).count()
 
-# groupby işlemleri
+# groupby 
 spark_df.groupby("churn").count().show()
 spark_df.groupby("churn").agg({"age": "mean"}).show()
 
 
-# Tüm numerik değişkenlerin seçimi ve özet istatistikleri
+# Selection and summary statistics of all numeric variables
 num_cols = [col[0] for col in spark_df.dtypes if col[1] != 'string']
 
 spark_df.select(num_cols).describe().toPandas().transpose()
 
-# Tüm kategorik değişkenlerin seçimi ve özeti
+# Selection and summary of all categorical variables
 cat_cols = [col[0] for col in spark_df.dtypes if col[1] == 'string']
 
 for col in cat_cols:
@@ -161,7 +161,7 @@ for col in [col.lower() for col in num_cols]:
 
 
 ##################################################
-# SQL Sorguları
+# SQL Queries
 ##################################################
 
 spark_df.createOrReplaceTempView("tbl_df")
@@ -186,14 +186,14 @@ from pyspark.sql.functions import when, count, col
 
 spark_df.select([count(when(col(c).isNull(), c)).alias(c) for c in spark_df.columns]).toPandas().T
 
-# eksik değere sahip satırları silmek
+# delete rows with missing value
 spark_df.dropna().show()
 
 
-# tüm veri setindeki eksiklikleri belirli bir değerle doldurmak
+# Replacing the missing values with a certain value
 spark_df.fillna(50).show()
 
-# eksik değerleri değişkenlere göre doldurmak
+# Filling the missing values based on some variables
 spark_df.na.fill({'age': 50, 'names': 'unknown'}).show()
 
 
@@ -229,13 +229,13 @@ spark_df = spark_df.withColumn("age_cat", spark_df["age_cat"].cast("integer"))
 spark_df.groupby("age_cat").agg({'churn': "mean"}).show()
 
 ############################
-# when ile Değişken Türetmek (segment)
+# Create features with 'when' (segment)
 ############################
 
 spark_df = spark_df.withColumn('segment', when(spark_df['years'] < 5, "segment_b").otherwise("segment_a"))
 
 ############################
-# when ile Değişken Türetmek (age_cat_2)
+# Create features with 'when'(age_cat_2)
 ############################
 
 
@@ -271,7 +271,7 @@ spark_df.show(5)
 
 
 ############################
-# TARGET'ın Tanımlanması
+# Defining the TARGET
 ############################
 
 stringIndexer = StringIndexer(inputCol='churn', outputCol='label')
@@ -282,7 +282,7 @@ spark_df.show(5)
 
 
 ############################
-# Feature'ların Tanımlanması
+# Defining the features
 ############################
 
 cols = ['age', 'total_purchase', 'account_manager', 'years',
@@ -395,7 +395,7 @@ segment_label = pd.Series([1, 1, 0, 1, 1])
 age_cat_ohe = pd.Series([1, 1, 0, 2, 1])
 
 
-yeni_musteriler = pd.DataFrame({
+new_cust = pd.DataFrame({
     'names': names,
     'age': age,
     'total_purchase': total_purchase,
@@ -407,8 +407,8 @@ yeni_musteriler = pd.DataFrame({
     "age_cat_ohe": age_cat_ohe})
 
 
-yeni_sdf = spark.createDataFrame(yeni_musteriler)
-new_customers = va.transform(yeni_sdf)
+new_sdf = spark.createDataFrame(new_cust)
+new_customers = va.transform(new_sdf)
 new_customers.show(3)
 
 results = cv_model.transform(new_customers)
@@ -416,7 +416,7 @@ results.select("names", "prediction").show()
 
 
 ##################################################
-# BONUS: User Defined Functions (UDFs)
+# User Defined Functions (UDFs)
 ##################################################
 
 def age_converter(age):
