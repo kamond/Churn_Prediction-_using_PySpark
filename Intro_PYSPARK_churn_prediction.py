@@ -1,5 +1,5 @@
 ##################################################
-# Churn Prediction using PySpark
+# Churn Prediction using PySpark 
 ##################################################
 
 # Can you develop a machine learning model that can predict customers leaving the company?
@@ -473,7 +473,6 @@ spark_df.show(5)
 spark_df.groupby("segment").count().show()
 
 
-
 ##################################################
 # Pandas UDFs
 ##################################################
@@ -498,6 +497,7 @@ def pandas_log(col):
     return np.log(col)
 
 spark_df.withColumn('age_log', pandas_log(spark_df.age)).show()
+
 
 
 
