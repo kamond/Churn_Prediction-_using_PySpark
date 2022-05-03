@@ -9,7 +9,7 @@
 # 2. Exploratory Data Analysis
 # 3. SQL Queries
 # 4. Data Preprocessing & Feature Engineering
-# 5. Modeling
+# 5. Modelling
 
 ##################################################
 # Installation
@@ -312,7 +312,7 @@ print("Test Dataset Count: " + str(test_df.count()))
 
 
 ##################################################
-# Modeling
+# Modelling
 ##################################################
 
 ############################
